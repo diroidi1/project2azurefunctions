@@ -1,0 +1,198 @@
+data:
+  AzureWebJobsStorage: ''
+  FUNCTIONS_WORKER_RUNTIME: cHl0aG9u
+  FUNCTIONS_EXTENSION_VERSION: fjQ=
+  MyDbConnection: bW9uZ29kYjovL2Z1bmN0aW9uY29ubmVjdGRiOkdxZHVVUE1sVXY1bFlrOXZseWpYTVlQWjlQdFBvaWx2Vm44bGlLbE5WbVRTSnZQMXpaWXBiT3N5b2JGRDg2ZUlrYldzTm5WSnZyMzhBQ0RiZlhHZ093PT1AZnVuY3Rpb25jb25uZWN0ZGIubW9uZ28uY29zbW9zLmF6dXJlLmNvbToxMDI1NS8/c3NsPXRydWUmcmVwbGljYVNldD1nbG9iYWxkYiZyZXRyeXdyaXRlcz1mYWxzZSZtYXhJZGxlVGltZU1TPTEyMDAwMCZhcHBOYW1lPUBmdW5jdGlvbmNvbm5lY3RkYkA=
+  WEBSITE_CONTENTAZUREFILECONNECTIONSTRING: RGVmYXVsdEVuZHBvaW50c1Byb3RvY29sPWh0dHBzO0FjY291bnROYW1lPXByb2plY3QyY29ubmVjdGZ1bmN0aW9uO0FjY291bnRLZXk9UFFxcnA4QWFsODJSb0QvQmc0ZmJmVVVCeisvRi9GczU2WDRiRE9zRGhJK0JUOWthNmk4cWh6QlpYbFNOS0dWbWhWN1o1SU5pWUtuVStBU3R3cXJmZ0E9PTtFbmRwb2ludFN1ZmZpeD1jb3JlLndpbmRvd3MubmV0
+  WEBSITE_CONTENTSHARE: cHJvamVjdDJjb25uZWN0ZnVuY3Rpb243NzQyOTQ=
+apiVersion: v1
+kind: Secret
+metadata:
+  name: myazurefunctions
+---
+data:
+  host.master: R0ZuMGNXaTM3eGc5a0pfeU5KM29CMWxDeGNPN3QtZVZYdWNBSFd2T2R4ZklBekZ1ZVRBeWNnPT0=
+  host.function.default: SGtRckF4bXIyZk9uLXRHMG5leHFLWnRJMW9zcFhuZFJsR0RnWm9seUVOWmdBekZ1OXYyT21RPT0=
+  host.systemKey.default: b2dNaS1TX0hodkszb3J5RkFIMHlGTlVpdVZ1QVVmZmVjcmxXczhHWGV1cXVBekZ1ZVRaaXpnPT0=
+  functions.deleteadvertisement.default: SWhpRU5IbkxfbXlDMnFxVlJMRXlyYU5uc1NXSTNPMDlmOGVrcTg4a3ZoU1NBekZ1Z2RZMlZnPT0=
+  functions.getpost.default: bHZDTl9WU3B2N0pHYjZXOGwzVElBZXl3dm5nSTkyRnpjVEJfcWs5LUhWeVJBekZ1Q2JLXzB3PT0=
+  functions.getadvertisement.default: V2N0ei1xWTBZY3JiMzhHZktpb1FtNHZLQTNmT0ZNdzJJc1lDcVI2YTRjSzRBekZ1Uy16YVFBPT0=
+  functions.createadvertisement.default: YUlubFdfSlA3ZlExYVVlVkJOWVFNUzJYd3FXalY4bTEwU3JCaHZhaVFvNlRBekZ1YnhQaFZ3PT0=
+  functions.getadvertisements.default: blYyMU9mTDE3YWZIUmd6TUhlc29naXZhWDRTOVp5WEVPa1VpYlhldzdTckRBekZ1T01RQi1RPT0=
+  functions.updateadvertisement.default: akhZcUhvQkFHWlFITmZUVkludW9jSW1HTlh0aFZwNFZ4TVk4Zlc2NzdmNnVBekZ1NnVSNWtBPT0=
+  functions.getposts.default: cWFURHJTV21VUGN3QUs0Yno5alVfbXdZOEdMaVNlV3NsRjM3UFVBVUg3UzRBekZ1Ry1fZUxRPT0=
+apiVersion: v1
+kind: Secret
+metadata:
+  name: func-keys-kube-secret-myazurefunctions
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: myazurefunctions-function-keys-identity-svc-act
+---
+rules:
+- apiGroups:
+  - ''
+  resources:
+  - secrets
+  - configMaps
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: functions-keys-manager-role
+---
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: functions-keys-manager-role
+subjects:
+- kind: ServiceAccount
+  name: myazurefunctions-function-keys-identity-svc-act
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: myazurefunctions-function-keys-identity-svc-act-functions-keys-manager-rolebinding
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: myazurefunctions-http
+spec:
+  selector:
+    app: myazurefunctions-http
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+  type: LoadBalancer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myazurefunctions-http
+  labels:
+    app: myazurefunctions-http
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: myazurefunctions-http
+  template:
+    metadata:
+      labels:
+        app: myazurefunctions-http
+    spec:
+      containers:
+      - name: myazurefunctions-http
+        image: proj2registry.azurecr.io/myazurefunctions:latest
+        ports:
+        - containerPort: 80
+        env:
+        - name: AzureFunctionsJobHost__functions__0
+          value: DeleteAdvertisement
+        - name: AzureFunctionsJobHost__functions__1
+          value: GetPost
+        - name: AzureFunctionsJobHost__functions__2
+          value: GetAdvertisement
+        - name: AzureFunctionsJobHost__functions__3
+          value: CreateAdvertisement
+        - name: AzureFunctionsJobHost__functions__4
+          value: GetAdvertisements
+        - name: AzureFunctionsJobHost__functions__5
+          value: UpdateAdvertisement
+        - name: AzureFunctionsJobHost__functions__6
+          value: GetPosts
+        - name: AzureWebJobsSecretStorageType
+          value: kubernetes
+        - name: AzureWebJobsKubernetesSecretName
+          value: secrets/func-keys-kube-secret-myazurefunctions
+        envFrom:
+        - secretRef:
+            name: myazurefunctions
+        readinessProbe:
+          failureThreshold: 3
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 240
+          httpGet:
+            path: /
+            port: 80
+            scheme: HTTP
+        startupProbe:
+          failureThreshold: 3
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 240
+          httpGet:
+            path: /
+            port: 80
+            scheme: HTTP
+      serviceAccountName: myazurefunctions-function-keys-identity-svc-act
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myazurefunctions
+  labels:
+    app: myazurefunctions
+spec:
+  selector:
+    matchLabels:
+      app: myazurefunctions
+  template:
+    metadata:
+      labels:
+        app: myazurefunctions
+    spec:
+      containers:
+      - name: myazurefunctions
+        image: proj2registry.azurecr.io/myazurefunctions:latest
+        env:
+        - name: AzureFunctionsJobHost__functions__0
+          value: EventGridTrigger
+        envFrom:
+        - secretRef:
+            name: myazurefunctions
+        readinessProbe:
+          failureThreshold: 3
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 240
+          httpGet:
+            path: /
+            port: 80
+            scheme: HTTP
+        startupProbe:
+          failureThreshold: 3
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 240
+          httpGet:
+            path: /
+            port: 80
+            scheme: HTTP
+      serviceAccountName: myazurefunctions-function-keys-identity-svc-act
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: myazurefunctions
+  labels: {}
+spec:
+  scaleTargetRef:
+    name: myazurefunctions
+  triggers:
+  - type: eventgridtrigger
+    metadata:
+      direction: in
+---
+
